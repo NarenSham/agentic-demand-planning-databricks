@@ -19,10 +19,29 @@ resources:
         on_failure:
           - ${var.alert_email}
 
+  apps:
+    cpg_demand_planner:
+      name: "cpg-demand-planner"
+      description: "Planner-facing UI over the demand forecasting agent"
+      source_code_path: ./app
+      resources:
+        - name: "sql-warehouse"
+          sql_warehouse:
+            id: ${var.warehouse_id}
+            permission: CAN_USE
+      # After deploy: grant this app's service principal CAN_QUERY on the
+      # cpg-demand-agent serving endpoint (see the commented-out block at
+      # the bottom of 19_deploy_serving_endpoint.py). Not scriptable here —
+      # the endpoint doesn't exist yet on first `databricks bundle deploy`,
+      # so the grant has to happen after 19_ has run once.
+
 variables:
   username:
     default: ""
   cluster_id:
     default: ""
   alert_email:
+    default: ""
+  warehouse_id:
+    description: "SQL warehouse ID the App queries for forecasts and audit logs"
     default: ""

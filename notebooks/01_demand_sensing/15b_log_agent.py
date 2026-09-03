@@ -44,9 +44,17 @@ with mlflow.start_run(run_name="demand_agent_v1") as run:
         name             = "demand_agent",
         python_model     = f"/Workspace/Users/{username}/Databricks-CPG/notebooks/01_demand_sensing/15_build_demand_agent.py",
         code_paths       = [
-            f"/Workspace/Users/{username}/Databricks-CPG/notebooks/Utils/governance_logging.py"
+            # Whole directory, not the single file — preserves the Utils/
+            # package structure so `from Utils.governance_logging import
+            # log_decision` resolves inside the Serving container the same
+            # way it does in the notebook. A single-file path here gets
+            # flattened by MLflow and silently breaks that import.
+            f"/Workspace/Users/{username}/Databricks-CPG/notebooks/Utils"
         ],
-        pip_requirements = ["xgboost", "mlflow", "databricks-sdk", "backoff"],
+        pip_requirements = [
+            "xgboost", "mlflow", "databricks-sdk", "backoff",
+            "databricks-sql-connector",  # governance logging fallback path
+        ],
         input_example    = input_example,
         signature        = signature,
     )

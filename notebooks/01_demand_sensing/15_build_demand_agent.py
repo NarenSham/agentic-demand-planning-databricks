@@ -39,8 +39,13 @@ from pydantic import BaseModel
 
 # from Utils.governance_logging import log_decision
 
-# Try workspace path first (notebook context)
-# Fall back to no-op stub (serving container context)
+# Try workspace path first (notebook context).
+# In the Model Serving container, code_paths (see 15b_log_agent.py) packages
+# the whole Utils/ directory alongside the model and MLflow puts that
+# directory on sys.path automatically — so the plain import below succeeds
+# there too, and log_decision writes via the SQL warehouse fallback inside
+# governance_logging.py instead of Spark. The bare no-op stub is now a true
+# last resort, not the expected serving-container path.
 try:
     notebooks_dir = (
         f'/Workspace/Users/'
@@ -51,10 +56,12 @@ try:
         sys.path.insert(0, notebooks_dir)
     from Utils.governance_logging import log_decision
 except Exception:
-    # Serving container — governance logging unavailable
-    # Agent continues without audit logging
-    def log_decision(agent_name="", action="", details=""):
-        pass
+    try:
+        from Utils.governance_logging import log_decision
+    except Exception:
+        # Truly unavailable — agent continues without audit logging
+        def log_decision(agent_name="", action="", details=""):
+            pass
 
 
 print("Imports complete.")

@@ -1,0 +1,17 @@
+command:
+  - streamlit
+  - run
+  - app.py
+
+env:
+  # Injected by the sql-warehouse resource declared for this app in the
+  # top-level databricks.yml — see resources.apps.cpg_demand_planner.
+  - name: WAREHOUSE_ID
+    valueFrom: sql-warehouse
+
+  # Name of the endpoint deployed by 19_deploy_serving_endpoint.py.
+  # Hardcoded rather than another resource binding — this app only ever
+  # talks to one agent, and a fixed name is easier to reason about than
+  # an indirection for something that doesn't change.
+  - name: SERVING_ENDPOINT_NAME
+    value: "cpg-demand-agent"
